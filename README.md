@@ -22,9 +22,9 @@ process[^1]:
 
 Using Bluesky for comments introduces a chicken-or-egg problem. You need
 one Bluesky post to watch for replies so that those replies can be shown
-in your blog post as comments. But first need to publish your blog so
-you can share it on Bluesky. Once you have the link to your skeet, come
-back to your blog and add the `{{< bluesky-comments >}}` shortcode.
+in your blog post as comments. But first, you need to publish your blog
+so you can share it on Bluesky. Once you have the link to your skeet,
+come back to your blog and add the `{{< bluesky-comments >}}` shortcode.
 
 The `{{< bluesky-comments >}}` shortcode doesn’t add any additional
 decoration (to make it as flexible as possible for your use case).
@@ -34,7 +34,7 @@ and in a “Comments” section:
 ``` markdown
 ---
 
-## Comments
+## Comments {.unlisted}
 
 {{< bluesky-comments https://bsky.app/profile/grrrck.xyz/post/3lbu5opiixc2j >}}
 ```

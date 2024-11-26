@@ -40,7 +40,7 @@ Adding Bluesky-powered comments to your blog is a three-step process[^five-steps
 
 Using Bluesky for comments introduces a chicken-or-egg problem.
 You need one Bluesky post to watch for replies so that those replies can be shown in your blog post as comments.
-But first need to publish your blog so you can share it on Bluesky.
+But first, you need to publish your blog so you can share it on Bluesky.
 Once you have the link to your skeet, come back to your blog and add the `{{{< bluesky-comments >}}}` shortcode.
 
 The `{{{< bluesky-comments >}}}` shortcode doesn't add any additional decoration (to make it as flexible as possible for your use case).
@@ -49,7 +49,7 @@ Here's a short snippet that adds the comments under a horizontal rule and in a "
 ```{.markdown shortcodes="false"}
 ---
 
-## Comments
+## Comments {.unlisted}
 
 {{< bluesky-comments https://bsky.app/profile/grrrck.xyz/post/3lbu5opiixc2j >}}
 ```
@@ -58,7 +58,14 @@ Here's a short snippet that adds the comments under a horizontal rule and in a "
 ::: {.content-visible when-format="html"}
 ---
 
-## About
+## Moderation
+
+To moderate unruly or disruptive commentors, navigate to your Bluesky post and
+find the unwanted comment(s) in the replies.
+Click the post menu ⋯ on the reply and select **Hide reply for everyone**.
+Hidden posts and their replies are immediately hidden for any new visitors.
+
+## Community Built
 
 This extension builds on [the web component](https://gist.github.com/LoueeD/b7dec10b2ea56c825cbb0b3a514720ed) shared by [\@loouee.bsky.social](https://bsky.app/profile/louee.bsky.social/post/3lbsizqjik22o) in response to the [bluesky-comments npm package](https://github.com/czue/bluesky-comments) shared by [\@coryzue.com](https://bsky.app/profile/coryzue.com/post/3lbrko5zsgk24) inspired by [\@emilyliu.me](https://bsky.app/profile/emilyliu.me)'s [post describing how to add comments from Bluesky](https://bsky.app/profile/emilyliu.me/post/3lbqta5lnck2i).
 Then I ([\@grrrck.xyz](https://bsky.app/profile/grrrck.xyz)) remixed the remix to make it work well with Quarto and to include some features from the npm package version.
