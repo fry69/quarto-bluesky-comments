@@ -5,6 +5,7 @@ class BlueskyCommentsSection extends HTMLElement {
     this.attachShadow({ mode: 'open' })
     this.visibleCount = 3
     this.thread = null
+    this.hiddenReplies = null
     this.error = null
   }
 
@@ -38,6 +39,9 @@ class BlueskyCommentsSection extends HTMLElement {
     try {
       const thread = await this.fetchThread(uri)
       this.thread = thread
+      if ('post' in thread && 'threadgate' in thread.post && thread.post.threadgate) {
+        this.hiddenReplies = thread.post.threadgate?.record?.hiddenReplies
+      }
       this.render()
     } catch (err) {
       this.renderError('Error loading comments')
@@ -132,6 +136,9 @@ class BlueskyCommentsSection extends HTMLElement {
     // Filter out blocked/not found replies
     // and replies that only contain 📌
     const filteredReplies = replies.filter(reply => {
+      if (this.hiddenReplies && this.hiddenReplies.includes(reply.post.uri)) {
+        return false
+      }
       if ('blocked' in reply && reply.blocked) {
         return false
       }
