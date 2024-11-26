@@ -63,5 +63,5 @@ Then I ([\@grrrck.xyz](https://bsky.app/profile/grrrck.xyz)) remixed the remix t
 
 ## Comments
 
-{{< bluesky-comments https://bsky.app/profile/grrrck.xyz/post/3lbu5opiixc2j style="--reply-border-color: var(--bs-emphasis-color)" >}}
+{{< bluesky-comments https://bsky.app/profile/grrrck.xyz/post/3lbu5opiixc2j style="--reply-border-color: var(--bs-gray-200)" >}}
 :::
