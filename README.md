@@ -36,7 +36,7 @@ and in a “Comments” section:
 
 ## Comments
 
-{{< bluesky-comments https://bsky.app/profile/coryzue.com/post/3lbrko5zsgk24 >}}
+{{< bluesky-comments https://bsky.app/profile/grrrck.xyz/post/3lbu5opiixc2j >}}
 ```
 
 [^1]: Yes, I know, that’s actually 5 steps.

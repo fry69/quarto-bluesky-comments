@@ -49,7 +49,7 @@ Here's a short snippet that adds the comments under a horizontal rule and in a "
 
 ## Comments
 
-{{< bluesky-comments https://bsky.app/profile/coryzue.com/post/3lbrko5zsgk24 >}}
+{{< bluesky-comments https://bsky.app/profile/grrrck.xyz/post/3lbu5opiixc2j >}}
 ```
 
 
@@ -63,5 +63,5 @@ Then I ([\@grrrck.xyz](https://bsky.app/profile/grrrck.xyz)) remixed the remix t
 
 ## Comments
 
-{{< bluesky-comments https://bsky.app/profile/coryzue.com/post/3lbrko5zsgk24 >}}
+{{< bluesky-comments https://bsky.app/profile/grrrck.xyz/post/3lbu5opiixc2j >}}
 :::
