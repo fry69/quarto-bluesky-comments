@@ -1,0 +1,67 @@
+---
+title: Bluesky Comments For Quarto
+
+format:
+  gfm: default
+  html:
+    toc: true
+    toc-level: 2
+    toc-location: right
+    toc-title: "bluesky-comments"
+    code-links:
+      - text: gadenbuie/quarto-bluesky-comments
+        href: "https://github.com/gadenbuie/quarto-bluesky-comments"
+        icon: github
+      - text: Question or Issue?
+        href: "https://github.com/gadenbuie/quarto-bluesky-comments/issues/new"
+        icon: question-circle-fill
+---
+
+# Installing
+
+```bash
+quarto add gadenbuie/quarto-bluesky-comments
+```
+
+This will install the extension under the `_extensions` subdirectory.
+If you're using version control, you will want to check in this directory.
+
+## Using
+
+Adding Bluesky-powered comments to your blog is a three-step process[^five-steps]:
+
+1. Publish the blog post and post about it on Bluesky.
+2. Copy the link to the Bluesky post.
+3. Add `{{{< bluesky-comments {post-url} >}}}` to your blog post and re-publish.
+
+[^five-steps]: Yes, I know, that's actually 5 steps.
+
+Using Bluesky for comments introduces a chicken-or-egg problem.
+You need one Bluesky post to watch for replies, which will be shown in your blog post.
+But to publish that post, you first need to publish your blog.
+And then you need to come back to your blog and update it with the link to the Bluesky post.
+
+The `{{{< bluesky-comments >}}}` shortcode doesn't add any additional decoration (to make it as flexible as possible for your use case).
+Here's a short snippet that adds the comments under a horizontal rule and in a "Comments" section:
+
+```{.markdown shortcodes="false"}
+---
+
+## Comments
+
+{{< bluesky-comments https://bsky.app/profile/coryzue.com/post/3lbrko5zsgk24 >}}
+```
+
+
+::: {.content-visible when-format="html"}
+---
+
+## About
+
+This extension builds on [the web component](https://gist.github.com/LoueeD/b7dec10b2ea56c825cbb0b3a514720ed) shared by [\@loouee.bsky.social](https://bsky.app/profile/louee.bsky.social/post/3lbsizqjik22o) in response to the [bluesky-comments npm package](https://github.com/czue/bluesky-comments) shared by [\@coryzue.com](https://bsky.app/profile/coryzue.com/post/3lbrko5zsgk24) inspired by [\@emilyliu.me](https://bsky.app/profile/emilyliu.me)'s [post describing how to add comments from Bluesky](https://bsky.app/profile/emilyliu.me/post/3lbqta5lnck2i).
+Then I ([\@grrrck.xyz](https://bsky.app/profile/grrrck.xyz)) remixed the remix to make it work well with Quarto and to include some features from the npm package version.
+
+## Comments
+
+{{< bluesky-comments https://bsky.app/profile/coryzue.com/post/3lbrko5zsgk24 >}}
+:::
