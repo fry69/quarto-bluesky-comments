@@ -21,10 +21,10 @@ process[^1]:
     re-publish.
 
 Using Bluesky for comments introduces a chicken-or-egg problem. You need
-one Bluesky post to watch for replies, which will be shown in your blog
-post. But to publish that post, you first need to publish your blog. And
-then you need to come back to your blog and update it with the link to
-the Bluesky post.
+one Bluesky post to watch for replies so that those replies can be shown
+in your blog post as comments. But first need to publish your blog so
+you can share it on Bluesky. Once you have the link to your skeet, come
+back to your blog and add the `{{< bluesky-comments >}}` shortcode.
 
 The `{{< bluesky-comments >}}` shortcode doesn’t add any additional
 decoration (to make it as flexible as possible for your use case).
