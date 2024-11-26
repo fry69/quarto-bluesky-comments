@@ -129,8 +129,16 @@ class BlueskyCommentsSection extends HTMLElement {
   }
 
   #filterSortReplies (replies) {
-    // Filter out replies that only contain 📌
+    // Filter out blocked/not found replies
+    // and replies that only contain 📌
     const filteredReplies = replies.filter(reply => {
+      if ('blocked' in reply && reply.blocked) {
+        return false
+      }
+      if ('notFound' in reply && reply.notFound) {
+        return false
+      }
+
       const text = reply.post.record?.text || ''
       return text.trim() !== '📌'
     })
