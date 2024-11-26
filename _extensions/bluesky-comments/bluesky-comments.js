@@ -152,10 +152,11 @@ class BlueskyCommentsSection extends HTMLElement {
 
     const author = reply.post.author
     const text = reply.post.record?.text || ''
+    const postId = reply.post.uri.split('/').pop()
 
     comment.innerHTML = `
       <div class="author">
-        <a href="https://bsky.app/profile/${author.did}" target="_blank" rel="noopener noreferrer">
+        <a href="https://bsky.app/profile/${author.did}/post/${postId}" target="_blank" rel="noopener noreferrer">
           ${author.avatar ? `<img width="22px" src="${author.avatar}" />` : ''}
           ${author.displayName ?? author.handle} @${author.handle}
         </a>
