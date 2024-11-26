@@ -86,7 +86,18 @@ class BlueskyCommentsSection extends HTMLElement {
       return
     }
 
-    const sortedReplies = this.thread.replies.sort(
+    // Filter out replies that only contain 📌
+    const filteredReplies = this.thread.replies.filter(reply => {
+      const text = reply.post.record?.text || ''
+      return text.trim() !== '📌'
+    })
+
+    if (!filteredReplies) {
+      this.renderError('No comments found')
+      return
+    }
+
+    const sortedReplies = filteredReplies.sort(
       (a, b) => (b.post.likeCount ?? 0) - (a.post.likeCount ?? 0)
     )
 
@@ -161,6 +172,7 @@ class BlueskyCommentsSection extends HTMLElement {
 
       reply.replies
         .sort((a, b) => (b.post.likeCount ?? 0) - (a.post.likeCount ?? 0))
+        .filter(p => (p.post.record?.text || '').trim() !== '📌')
         .forEach((childReply) => {
           repliesContainer.appendChild(this.createCommentElement(childReply))
         })
