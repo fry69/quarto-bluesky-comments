@@ -30,9 +30,15 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
+      - name: Turn on auto-dark mode
+        shell: bash
+        run: |
+          awk 'NR==1, /---/ {if (!done && /---/) {print "---\nfilters:\n  - auto-dark"; done=1; next}} 1' README.qmd > index.qmd
+          quarto add gadenbuie/quarto-auto-dark --no-prompt
+
       - name: Render README
         shell: bash
-        run: quarto render README.qmd --to html --output index.html
+        run: quarto render index.qmd --to html
 
       # From GitHub's "Static HTML" workflow template
       - name: Setup Pages

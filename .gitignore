@@ -4,3 +4,5 @@
 /.luarc.json
 /node_modules
 .DS_Store
+
+/.quarto/
