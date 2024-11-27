@@ -12,23 +12,19 @@ class BlueskyCommentsSection extends HTMLElement {
   connectedCallback () {
     const postUri = this.getAttribute('post')
     if (!postUri) {
-      this.renderError('Post URI is required')
+      this.renderError('Post link (or at:// URI) is required')
       return
     }
     this.loadThread(this.#convertUri(postUri))
   }
 
   #convertUri (uri) {
-    if (uri.startsWith('at://')) {
-      return uri
-    }
+    if (uri.startsWith('at://')) return uri
 
-    if (uri.includes('bsky.app/profile/')) {
-      const match = uri.match(/profile\/([\w.]+)\/post\/([\w]+)/)
-      if (match) {
-        const [, did, postId] = match
-        return `at://${did}/app.bsky.feed.post/${postId}`
-      }
+    const match = uri.match(/bsky\.app\/profile\/([\w.]+)\/post\/([\w]+)/)
+    if (match) {
+      const [, did, postId] = match
+      return `at://${did}/app.bsky.feed.post/${postId}`
     }
 
     this.error = 'Invalid Bluesky post URL format'
@@ -39,11 +35,10 @@ class BlueskyCommentsSection extends HTMLElement {
     try {
       const thread = await this.fetchThread(uri)
       this.thread = thread
-      if ('post' in thread && 'threadgate' in thread.post && thread.post.threadgate) {
-        this.hiddenReplies = thread.post.threadgate?.record?.hiddenReplies
-      }
+      this.hiddenReplies = thread.post?.threadgate?.record?.hiddenReplies ?? null
       this.render()
     } catch (err) {
+      console.error('[bluesky-comments] Error loading thread:', err)
       this.renderError('Error loading comments')
     }
   }
@@ -133,32 +128,16 @@ class BlueskyCommentsSection extends HTMLElement {
   }
 
   #filterSortReplies (replies) {
-    // Filter out blocked/not found replies
-    // and replies that only contain 📌
-    const filteredReplies = replies.filter(reply => {
-      if (this.hiddenReplies && this.hiddenReplies.includes(reply.post.uri)) {
-        return false
-      }
-      if ('blocked' in reply && reply.blocked) {
-        return false
-      }
-      if ('notFound' in reply && reply.notFound) {
-        return false
-      }
+    if (!Array.isArray(replies)) return []
 
-      const text = reply.post.record?.text || ''
-      return text.trim() !== '📌'
-    })
-
-    if (!filteredReplies) {
-      return []
-    }
-
-    const sortedReplies = filteredReplies.sort(
-      (a, b) => (b.post.likeCount ?? 0) - (a.post.likeCount ?? 0)
-    )
-
-    return sortedReplies
+    return replies
+      .filter(reply => {
+        if (!reply?.post?.record?.text) return false
+        if (this.hiddenReplies?.includes(reply.post.uri)) return false
+        if (reply.blocked || reply.notFound) return false
+        return reply.post.record.text.trim() !== '📌'
+      })
+      .sort((a, b) => (b.post.likeCount ?? 0) - (a.post.likeCount ?? 0))
   }
 
   escapeHTML (htmlString) {
@@ -171,35 +150,30 @@ class BlueskyCommentsSection extends HTMLElement {
   }
 
   createCommentElement (reply) {
+    const { author, record, uri, likeCount = 0, repostCount = 0, replyCount = 0 } = reply.post
+    const postId = uri.split('/').pop()
+    const profileUrl = `https://bsky.app/profile/${author.did}/post/${postId}`
+
     const comment = document.createElement('div')
     comment.classList.add('comment')
-
-    const author = reply.post.author
-    const text = reply.post.record?.text || ''
-    const postId = reply.post.uri.split('/').pop()
-
     comment.innerHTML = `
       <div class="author">
-        <a href="https://bsky.app/profile/${author.did}/post/${postId}" target="_blank" rel="noopener noreferrer">
-          ${author.avatar ? `<img width="22px" src="${author.avatar}" />` : ''}
+        <a href="${profileUrl}" target="_blank" rel="noopener noreferrer">
+          ${author.avatar ? `<img width="22px" src="${author.avatar}" alt="" />` : ''}
           ${author.displayName ?? author.handle} @${author.handle}
         </a>
-        <p class="comment-text">${this.escapeHTML(text)}</p>
+        <p class="comment-text">${this.escapeHTML(record?.text ?? '')}</p>
         <small class="comment-meta">
-          ${reply.post.likeCount ?? 0} likes • ${reply.post.repostCount ?? 0} reposts • ${reply.post.replyCount ?? 0} replies
+          ${likeCount} likes • ${repostCount} reposts • ${replyCount} replies
         </small>
       </div>
     `
 
-    if (reply.replies && reply.replies.length > 0) {
+    if (reply.replies?.length) {
       const repliesContainer = document.createElement('div')
       repliesContainer.classList.add('replies-container')
-
       this.#filterSortReplies(reply.replies)
-        .forEach((childReply) => {
-          repliesContainer.appendChild(this.createCommentElement(childReply))
-        })
-
+        .forEach(childReply => repliesContainer.appendChild(this.createCommentElement(childReply)))
       comment.appendChild(repliesContainer)
     }
 
