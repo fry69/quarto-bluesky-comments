@@ -6,9 +6,12 @@ class BlueskyCommentsSection extends HTMLElement {
     this.nShowInit = 3
     this.nVisible = this.nShowInit
     this.nShowMore = 5
+    this.maxDepth = 3
     this.thread = null
     this.hiddenReplies = null
     this.error = null
+    this.visibleRepliesMap = new Map()
+    this.expandedThreads = new Map()
   }
 
   connectedCallback () {
@@ -18,16 +21,19 @@ class BlueskyCommentsSection extends HTMLElement {
       return
     }
 
-    const visibleCount = this.getAttribute('n-init-comments')
-    if (visibleCount) {
-      this.nVisible = parseInt(visibleCount)
+    const nVisible = this.getAttribute('n-init-comments')
+    if (nVisible) {
+      this.nVisible = parseInt(nVisible)
       this.nShowInit = this.nVisible
     }
 
     const nShowMore = this.getAttribute('n-show-more')
     if (nShowMore) this.nShowMore = parseInt(nShowMore)
 
-      this.loadThread(this.#convertUri(postUri))
+    const maxDepth = this.getAttribute('max-depth')
+    if (maxDepth) this.maxDepth = parseInt(maxDepth)
+
+    this.loadThread(this.#convertUri(postUri))
   }
 
   #convertUri (uri) {
@@ -47,7 +53,8 @@ class BlueskyCommentsSection extends HTMLElement {
     try {
       const thread = await this.fetchThread(uri)
       this.thread = thread
-      this.hiddenReplies = thread.post?.threadgate?.record?.hiddenReplies ?? null
+      this.hiddenReplies =
+        thread.post?.threadgate?.record?.hiddenReplies ?? null
       this.render()
     } catch (err) {
       console.error('[bluesky-comments] Error loading thread:', err)
@@ -67,9 +74,9 @@ class BlueskyCommentsSection extends HTMLElement {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          Accept: 'application/json'
+          Accept: 'application/json',
         },
-        cache: 'no-store'
+        cache: 'no-store',
       })
 
       if (!response.ok) {
@@ -106,7 +113,11 @@ class BlueskyCommentsSection extends HTMLElement {
     const comments = document.createElement('comments')
     comments.innerHTML = `
       <p class="reply-info">
-        <a href="https://bsky.app/profile/${this.thread.post?.author?.did}/post/${this.thread.post?.uri.split('/').pop()}" target="_blank" rel="noopener noreferrer">
+        <a href="https://bsky.app/profile/${
+          this.thread.post?.author?.did
+        }/post/${this.thread.post?.uri
+      .split('/')
+      .pop()}" target="_blank" rel="noopener noreferrer">
         Reply on Bluesky</a>
         to join the conversation.
       </p>
@@ -115,11 +126,14 @@ class BlueskyCommentsSection extends HTMLElement {
         Show more comments
       </button>
     `
-    comments.firstElementChild.insertAdjacentElement('beforebegin', this.renderStats(this.thread))
+    comments.firstElementChild.insertAdjacentElement(
+      'beforebegin',
+      this.renderStats(this.thread)
+    )
 
     const commentsContainer = comments.querySelector('#comments')
-    sortedReplies.slice(0, this.nVisible).forEach((reply) => {
-      commentsContainer.appendChild(this.createCommentElement(reply))
+    sortedReplies.slice(0, this.nVisible).forEach(reply => {
+      commentsContainer.appendChild(this.createCommentElement(reply, 0))
     })
 
     const showMoreButton = comments.querySelector('#show-more')
@@ -158,8 +172,15 @@ class BlueskyCommentsSection extends HTMLElement {
       .replace(/'/g, '&#039;') // Escape '
   }
 
-  createCommentElement (reply) {
-    const { author, record, uri, likeCount = 0, repostCount = 0, replyCount = 0 } = reply.post
+  createCommentElement (reply, depth = 0) {
+    const {
+      author,
+      record,
+      uri,
+      likeCount = 0,
+      repostCount = 0,
+      replyCount = 0,
+    } = reply.post
     const postId = uri.split('/').pop()
     const profileUrl = `https://bsky.app/profile/${author.did}/post/${postId}`
 
@@ -168,7 +189,11 @@ class BlueskyCommentsSection extends HTMLElement {
     comment.innerHTML = `
       <div class="author">
         <a href="${profileUrl}" target="_blank" rel="noopener noreferrer">
-          ${author.avatar ? `<img width="22px" src="${author.avatar}" alt="" />` : ''}
+          ${
+            author.avatar
+              ? `<img width="22px" src="${author.avatar}" alt="" />`
+              : ''
+          }
           ${author.displayName ?? author.handle} @${author.handle}
         </a>
         <p class="comment-text">${this.escapeHTML(record?.text ?? '')}</p>
@@ -181,8 +206,58 @@ class BlueskyCommentsSection extends HTMLElement {
     if (reply.replies?.length) {
       const repliesContainer = document.createElement('div')
       repliesContainer.classList.add('replies-container')
-      this.#filterSortReplies(reply.replies)
-        .forEach(childReply => repliesContainer.appendChild(this.createCommentElement(childReply)))
+
+      if (!this.visibleRepliesMap.has(uri)) {
+        this.visibleRepliesMap.set(uri, this.nShowInit)
+      }
+
+      const filteredReplies = this.#filterSortReplies(reply.replies)
+      if (filteredReplies.length === 0) {
+        return
+      }
+
+      const nVisibleReplies = this.visibleRepliesMap.get(uri)
+      const wasExpanded = this.expandedThreads.get(uri)
+      const isExpanded = depth < this.maxDepth || wasExpanded
+
+      if (isExpanded) {
+        filteredReplies
+          .slice(0, nVisibleReplies)
+          .forEach(childReply =>
+            repliesContainer.appendChild(
+              this.createCommentElement(childReply, wasExpanded ? 0 : depth + 1)
+            )
+          )
+      }
+
+      // Show more button, only added if needed (signaled by updating its text content)
+      const button = document.createElement('button')
+      button.classList.add('show-more-replies')
+
+      if (!isExpanded) {
+        // Show more button: expand thread
+        button.textContent = `Show ${filteredReplies.length} nested ${
+          filteredReplies.length === 1 ? 'reply' : 'replies'
+        }`
+        button.addEventListener('click', () => {
+          this.expandedThreads.set(uri, true)
+          this.render()
+        })
+      } else if (filteredReplies.length > nVisibleReplies) {
+        // Show more button: More replies
+        button.textContent = `Show more replies (${
+          filteredReplies.length - nVisibleReplies
+        } hidden)`
+        button.addEventListener('click', () => {
+          this.visibleRepliesMap.set(uri, nVisibleReplies + this.nShowMore)
+          this.render()
+        })
+      }
+
+      if (button.textContent) {
+        repliesContainer.appendChild(button)
+      }
+
       comment.appendChild(repliesContainer)
     }
 
@@ -193,12 +268,14 @@ class BlueskyCommentsSection extends HTMLElement {
     const statsBar = document.createElement('p')
     statsBar.classList.add('stats-bar')
 
-    const postUrl = `https://bsky.app/profile/${reply.post.author.did}/post/${reply.post.uri.split('/').pop()}`
+    const postUrl = `https://bsky.app/profile/${
+      reply.post.author.did
+    }/post/${reply.post.uri.split('/').pop()}`
 
     const statsIcons = {
       likes: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--bs-pink, pink)" class="bi bi-heart-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/></svg>`,
       reposts: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--bs-green, green)" class="bi bi-recycle" viewBox="0 0 16 16"><path d="M9.302 1.256a1.5 1.5 0 0 0-2.604 0l-1.704 2.98a.5.5 0 0 0 .869.497l1.703-2.981a.5.5 0 0 1 .868 0l2.54 4.444-1.256-.337a.5.5 0 1 0-.26.966l2.415.647a.5.5 0 0 0 .613-.353l.647-2.415a.5.5 0 1 0-.966-.259l-.333 1.242zM2.973 7.773l-1.255.337a.5.5 0 1 1-.26-.966l2.416-.647a.5.5 0 0 1 .612.353l.647 2.415a.5.5 0 0 1-.966.259l-.333-1.242-2.545 4.454a.5.5 0 0 0 .434.748H5a.5.5 0 0 1 0 1H1.723A1.5 1.5 0 0 1 .421 12.24zm10.89 1.463a.5.5 0 1 0-.868.496l1.716 3.004a.5.5 0 0 1-.434.748h-5.57l.647-.646a.5.5 0 1 0-.708-.707l-1.5 1.5a.5.5 0 0 0 0 .707l1.5 1.5a.5.5 0 1 0 .708-.707l-.647-.647h5.57a1.5 1.5 0 0 0 1.302-2.244z"/></svg>`,
-      quotes: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--bs-blue, blue)" class="bi bi-chat-dots-fill" viewBox="0 0 16 16"><path d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/></svg>`
+      quotes: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--bs-blue, blue)" class="bi bi-chat-dots-fill" viewBox="0 0 16 16"><path d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/></svg>`,
     }
 
     statsBar.innerHTML = `
@@ -231,7 +308,7 @@ class BlueskyCommentsSection extends HTMLElement {
   }
 
   addStyles () {
-    if (this.hasAttribute("no-css")) return
+    if (this.hasAttribute('no-css')) return
     if (this.shadowRoot.querySelector('style')) return
 
     const style = document.createElement('style')
@@ -253,6 +330,11 @@ class BlueskyCommentsSection extends HTMLElement {
         --button-background-color: var(--bs-gray-200, rgba(0,0,0,0.05));
         --button-hover-background-color: var(--bs-gray-300, rgba(0,0,0,0.1));
         --author-avatar-border-radius: 100%;
+        --button-padding: 0.5em 1em;
+        --button-margin: 0.5em 0;
+        --button-font: inherit;
+        --button-font-size: 0.9em;
+        --button-border-radius: 0.8em;
       }
 
       comments {
@@ -266,21 +348,6 @@ class BlueskyCommentsSection extends HTMLElement {
       .reply-info {
         font-size: 14px;
         color: var(--text-color);
-      }
-      #show-more {
-        margin-top: 10px;
-        width: 100%;
-        padding: 1em;
-        font: inherit;
-        box-sizing: border-box;
-        background: var(--button-background-color);
-        border-radius: 0.8em;
-        cursor: pointer;
-        border: 0;
-
-        &:hover {
-          background: var(--button-hover-background-color);
-        }
       }
       .comment {
         margin-bottom: 2em;
@@ -351,6 +418,23 @@ class BlueskyCommentsSection extends HTMLElement {
       .icon {
         width: 1.25rem;
         height: 1.25rem;
+      }
+
+      button {
+        margin: var(--button-margin);
+        padding: var(--button-padding);
+        width: 100%;
+        font: var(--button-font);
+        font-size: var(--button-font-size);
+        background: var(--button-background-color);
+        border-radius: var(--button-border-radius);
+        cursor: pointer;
+        border: 0;
+        box-sizing: border-box;
+
+        &:hover {
+          background: var(--button-hover-background-color);
+        }
       }
     `
     this.shadowRoot.appendChild(style)
