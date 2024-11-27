@@ -3,7 +3,9 @@ class BlueskyCommentsSection extends HTMLElement {
   constructor () {
     super()
     this.attachShadow({ mode: 'open' })
-    this.visibleCount = 3
+    this.nShowInit = 3
+    this.nVisible = this.nShowInit
+    this.nShowMore = 5
     this.thread = null
     this.hiddenReplies = null
     this.error = null
@@ -15,7 +17,17 @@ class BlueskyCommentsSection extends HTMLElement {
       this.renderError('Post link (or at:// URI) is required')
       return
     }
-    this.loadThread(this.#convertUri(postUri))
+
+    const visibleCount = this.getAttribute('n-init-comments')
+    if (visibleCount) {
+      this.nVisible = parseInt(visibleCount)
+      this.nShowInit = this.nVisible
+    }
+
+    const nShowMore = this.getAttribute('n-show-more')
+    if (nShowMore) this.nShowMore = parseInt(nShowMore)
+
+      this.loadThread(this.#convertUri(postUri))
   }
 
   #convertUri (uri) {
@@ -106,16 +118,16 @@ class BlueskyCommentsSection extends HTMLElement {
     comments.firstElementChild.insertAdjacentElement('beforebegin', this.renderStats(this.thread))
 
     const commentsContainer = comments.querySelector('#comments')
-    sortedReplies.slice(0, this.visibleCount).forEach((reply) => {
+    sortedReplies.slice(0, this.nVisible).forEach((reply) => {
       commentsContainer.appendChild(this.createCommentElement(reply))
     })
 
     const showMoreButton = comments.querySelector('#show-more')
-    if (this.visibleCount >= sortedReplies.length) {
+    if (this.nVisible >= sortedReplies.length) {
       showMoreButton.style.display = 'none'
     }
     showMoreButton.addEventListener('click', () => {
-      this.visibleCount += 5
+      this.nVisible += this.nShowMore
       this.render()
     })
 
