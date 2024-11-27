@@ -121,10 +121,7 @@ class BlueskyCommentsSection extends HTMLElement {
 
     this.shadowRoot.innerHTML = ''
     this.shadowRoot.appendChild(comments)
-
-    if (!this.hasAttribute('no-css')) {
-      this.addStyles()
-    }
+    this.addStyles()
   }
 
   #filterSortReplies (replies) {
@@ -186,29 +183,29 @@ class BlueskyCommentsSection extends HTMLElement {
 
     const postUrl = `https://bsky.app/profile/${reply.post.author.did}/post/${reply.post.uri.split('/').pop()}`
 
+    const statsIcons = {
+      likes: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--bs-pink, pink)" class="bi bi-heart-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/></svg>`,
+      reposts: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--bs-green, green)" class="bi bi-recycle" viewBox="0 0 16 16"><path d="M9.302 1.256a1.5 1.5 0 0 0-2.604 0l-1.704 2.98a.5.5 0 0 0 .869.497l1.703-2.981a.5.5 0 0 1 .868 0l2.54 4.444-1.256-.337a.5.5 0 1 0-.26.966l2.415.647a.5.5 0 0 0 .613-.353l.647-2.415a.5.5 0 1 0-.966-.259l-.333 1.242zM2.973 7.773l-1.255.337a.5.5 0 1 1-.26-.966l2.416-.647a.5.5 0 0 1 .612.353l.647 2.415a.5.5 0 0 1-.966.259l-.333-1.242-2.545 4.454a.5.5 0 0 0 .434.748H5a.5.5 0 0 1 0 1H1.723A1.5 1.5 0 0 1 .421 12.24zm10.89 1.463a.5.5 0 1 0-.868.496l1.716 3.004a.5.5 0 0 1-.434.748h-5.57l.647-.646a.5.5 0 1 0-.708-.707l-1.5 1.5a.5.5 0 0 0 0 .707l1.5 1.5a.5.5 0 1 0 .708-.707l-.647-.647h5.57a1.5 1.5 0 0 0 1.302-2.244z"/></svg>`,
+      quotes: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--bs-blue, blue)" class="bi bi-chat-dots-fill" viewBox="0 0 16 16"><path d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/></svg>`
+    }
+
     statsBar.innerHTML = `
         <span class="stat-item">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--bs-pink, pink)" class="bi bi-heart-fill" viewBox="0 0 16 16">
-  <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/>
-</svg>
-          <a href="${postUrl}" target="_blank" rel="noreferrer noopener">
+          <a href="${postUrl}/liked-by" target="_blank" rel="noreferrer noopener">
+            ${statsIcons.likes}
             <span>${reply.post.likeCount ?? 0} likes</span>
           </a>
         </span>
         <span class="stat-item">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--bs-green, green)" class="bi bi-recycle" viewBox="0 0 16 16">
-  <path d="M9.302 1.256a1.5 1.5 0 0 0-2.604 0l-1.704 2.98a.5.5 0 0 0 .869.497l1.703-2.981a.5.5 0 0 1 .868 0l2.54 4.444-1.256-.337a.5.5 0 1 0-.26.966l2.415.647a.5.5 0 0 0 .613-.353l.647-2.415a.5.5 0 1 0-.966-.259l-.333 1.242zM2.973 7.773l-1.255.337a.5.5 0 1 1-.26-.966l2.416-.647a.5.5 0 0 1 .612.353l.647 2.415a.5.5 0 0 1-.966.259l-.333-1.242-2.545 4.454a.5.5 0 0 0 .434.748H5a.5.5 0 0 1 0 1H1.723A1.5 1.5 0 0 1 .421 12.24zm10.89 1.463a.5.5 0 1 0-.868.496l1.716 3.004a.5.5 0 0 1-.434.748h-5.57l.647-.646a.5.5 0 1 0-.708-.707l-1.5 1.5a.5.5 0 0 0 0 .707l1.5 1.5a.5.5 0 1 0 .708-.707l-.647-.647h5.57a1.5 1.5 0 0 0 1.302-2.244z"/>
-</svg>
-          <a href="${postUrl}" target="_blank" rel="noreferrer noopener">
+          <a href="${postUrl}/reposted-by" target="_blank" rel="noreferrer noopener">
+            ${statsIcons.reposts}
             <span>${reply.post.repostCount ?? 0} reposts</span>
           </a>
         </span>
         <span class="stat-item">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--bs-blue, blue)" class="bi bi-chat-dots-fill" viewBox="0 0 16 16">
-  <path d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
-</svg>
-          <a href="${postUrl}" target="_blank" rel="noreferrer noopener">
-            <span>${reply.post.replyCount ?? 0} replies</span>
+          <a href="${postUrl}/quotes" target="_blank" rel="noreferrer noopener">
+            ${statsIcons.quotes}
+            <span>${reply.post.quoteCount ?? 0} quotes</span>
           </a>
         </span>
     `
@@ -217,21 +214,28 @@ class BlueskyCommentsSection extends HTMLElement {
   }
 
   renderError (message) {
-    this.shadowRoot.innerHTML = `<p class="error">${message}</p>`
+    this.shadowRoot.innerHTML = `<p class="error">Bluesky Comments error: <strong>${message}</strong></p>`
+    this.addStyles()
   }
 
   addStyles () {
+    if (this.hasAttribute("no-css")) return
+    if (this.shadowRoot.querySelector('style')) return
+
     const style = document.createElement('style')
     style.textContent = `
       :host {
         --max-width: 100%;
+        --border-radius: var(--bs-border-radius, 0.375rem);
         --background-color: var(--bs-body-bg, white);
         --text-color: var(--bs-body-color, black);
         --link-color: var(--bs-link-color, gray);
         --link-hover-color: var(--bs-link-hover-color, black);
         --link-decoration: var(--bs-link-decoration, underline);
         --comment-meta-color: var(--bs-secondary, gray);
-        --error-color: var(--bs-danger, red);
+        --error-color: var(--bs-danger-text-emphasis, #58151c);
+        --error-bg: var(--bs-danger-bg-subtle, #f8d7da);
+        --error-border: 1px solid var(--bs-danger-border-subtle, #f1aeb5);
         --reply-border-color: var(--bs-border-color, #ccc);
         --reply-border: 2px solid var(--reply-border-color);
         --button-background-color: var(--bs-gray-200, rgba(0,0,0,0.05));
@@ -304,8 +308,13 @@ class BlueskyCommentsSection extends HTMLElement {
         border-left: var(--reply-border);
         padding-left: 1.25em;
       }
+
       .error {
         color: var(--error-color);
+        background-color: var(--error-bg);
+        border: var(--error-border);
+        border-radius: var(--border-radius);
+        padding: 1rem;
       }
 
       .stats-bar {
