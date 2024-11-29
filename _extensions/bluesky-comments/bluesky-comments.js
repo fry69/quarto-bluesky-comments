@@ -15,13 +15,24 @@ class BlueskyCommentsSection extends HTMLElement {
     this.expandedThreads = new Map()
   }
 
-  connectedCallback () {
-    this.postUri = this.getAttribute('post')
-    if (!this.postUri) {
-      this.renderError('Post link (or at:// URI) is required')
-      return
-    }
+  static get observedAttributes () {
+    return ['post']
+  }
 
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (oldValue === newValue) return
+
+    if (name === 'post') {
+      this.postUri = newValue
+      if (newValue) {
+        this.loadThread(this.#convertUri(this.postUri))
+      } else {
+        this.renderError('Post link (or at:// URI) is required')
+      }
+    }
+  }
+
+  connectedCallback () {
     const nVisible = this.getAttribute('n-init-comments')
     if (nVisible) {
       this.nVisible = parseInt(nVisible)
@@ -33,8 +44,6 @@ class BlueskyCommentsSection extends HTMLElement {
 
     const maxDepth = this.getAttribute('max-depth')
     if (maxDepth) this.maxDepth = parseInt(maxDepth)
-
-    this.loadThread(this.#convertUri(this.postUri))
   }
 
   #convertUri (uri) {
