@@ -3,6 +3,7 @@ class BlueskyCommentsSection extends HTMLElement {
   constructor () {
     super()
     this.attachShadow({ mode: 'open' })
+    this.postUri = null
     this.nShowInit = 3
     this.nVisible = this.nShowInit
     this.nShowMore = 5
@@ -15,8 +16,8 @@ class BlueskyCommentsSection extends HTMLElement {
   }
 
   connectedCallback () {
-    const postUri = this.getAttribute('post')
-    if (!postUri) {
+    this.postUri = this.getAttribute('post')
+    if (!this.postUri) {
       this.renderError('Post link (or at:// URI) is required')
       return
     }
@@ -33,7 +34,7 @@ class BlueskyCommentsSection extends HTMLElement {
     const maxDepth = this.getAttribute('max-depth')
     if (maxDepth) this.maxDepth = parseInt(maxDepth)
 
-    this.loadThread(this.#convertUri(postUri))
+    this.loadThread(this.#convertUri(this.postUri))
   }
 
   #convertUri (uri) {
@@ -49,9 +50,21 @@ class BlueskyCommentsSection extends HTMLElement {
     return null
   }
 
+  #logAtUri (thread) {
+    if (this.postUri === thread.post.uri) {
+      return
+    }
+
+    console.warn(
+      `[bluesky-comments] For more stable and future-proof comments, replace the post URL ${this.postUri} with the resolved AT-proto URI ${thread.post.uri}.`,
+      { source: this.postUri, resolved: thread.post.uri }
+    )
+  }
+
   async loadThread (uri) {
     try {
       const thread = await this.fetchThread(uri)
+      this.#logAtUri(thread)
       this.thread = thread
       this.hiddenReplies =
         thread.post?.threadgate?.record?.hiddenReplies ?? null
