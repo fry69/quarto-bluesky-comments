@@ -163,13 +163,20 @@ class BlueskyCommentsSection extends HTMLElement {
       .sort((a, b) => (b.post.likeCount ?? 0) - (a.post.likeCount ?? 0))
   }
 
-  escapeHTML (htmlString) {
+  static escapeHTML (htmlString) {
     return htmlString
       .replace(/&/g, '&amp;') // Escape &
       .replace(/</g, '&lt;') // Escape <
       .replace(/>/g, '&gt;') // Escape >
       .replace(/"/g, '&quot;') // Escape "
       .replace(/'/g, '&#039;') // Escape '
+  }
+
+  static pluralize (x, one, many) {
+    if (Array.isArray(x)) {
+      x = x.length
+    }
+    return x === 1 ? one : many
   }
 
   createCommentElement (reply, depth = 0) {
@@ -197,9 +204,11 @@ class BlueskyCommentsSection extends HTMLElement {
           }
           ${author.displayName ?? author.handle} @${author.handle}
         </a>
-        <p class="comment-text">${this.escapeHTML(record?.text ?? '')}</p>
+        <p class="comment-text">${BlueskyCommentsSection.escapeHTML(record?.text ?? '')}</p>
         <small class="comment-meta">
-          ${likeCount} likes • ${repostCount + quoteCount} reposts • ${replyCount} replies
+          ${likeCount} ${BlueskyCommentsSection.pluralize(likeCount, 'like', 'likes')}
+          • ${repostCount + quoteCount} ${BlueskyCommentsSection.pluralize(repostCount + quoteCount, 'repost', 'reposts')}
+          • ${replyCount} ${BlueskyCommentsSection.pluralize(replyCount, 'reply', 'replies')}
         </small>
       </div>
     `
