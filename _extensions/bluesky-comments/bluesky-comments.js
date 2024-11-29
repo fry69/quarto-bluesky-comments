@@ -179,6 +179,7 @@ class BlueskyCommentsSection extends HTMLElement {
       uri,
       likeCount = 0,
       repostCount = 0,
+      quoteCount = 0,
       replyCount = 0
     } = reply.post
     const postId = uri.split('/').pop()
@@ -191,14 +192,14 @@ class BlueskyCommentsSection extends HTMLElement {
         <a href="${profileUrl}" target="_blank" rel="noopener noreferrer">
           ${
             author.avatar
-              ? `<img width="22px" src="${author.avatar}" alt="" />`
+              ? `<img class="avatar" src="${author.avatar}" alt="" />`
               : ''
           }
           ${author.displayName ?? author.handle} @${author.handle}
         </a>
         <p class="comment-text">${this.escapeHTML(record?.text ?? '')}</p>
         <small class="comment-meta">
-          ${likeCount} likes • ${repostCount} reposts • ${replyCount} replies
+          ${likeCount} likes • ${repostCount + quoteCount} reposts • ${replyCount} replies
         </small>
       </div>
     `
@@ -327,6 +328,8 @@ class BlueskyCommentsSection extends HTMLElement {
         --error-border: 1px solid var(--bs-danger-border-subtle, #f1aeb5);
         --reply-border-color: var(--bs-border-color, #ccc);
         --reply-border: 2px solid var(--reply-border-color);
+        --avatar-width: 1.375rem;
+        --avatar-border-radius: 50%;
         --button-background-color: var(--bs-gray-200, rgba(0,0,0,0.05));
         --button-hover-background-color: var(--bs-gray-300, rgba(0,0,0,0.1));
         --author-avatar-border-radius: 100%;
@@ -368,11 +371,15 @@ class BlueskyCommentsSection extends HTMLElement {
           }
 
           img {
-            margin-right: 0.4em;
-            border-radius: var(--author-avatar-border-radius);
-            vertical-align: middle;
+
           }
         }
+      }
+      .avatar {
+        width: var(--avatar-width);
+        margin-right: 0.4em;
+        border-radius: var(--avatar-border-radius);
+        vertical-align: middle;
       }
       .comment-text {
         margin: 5px 0;
