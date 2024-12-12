@@ -121,16 +121,12 @@ class BlueskyCommentsSection extends HTMLElement {
   }
 
   render () {
-    if (!this.thread || !this.thread.replies) {
-      this.renderError('No comments found')
+    if (!this.thread) {
+      this.renderError('Thread not found.')
       return
     }
 
-    const sortedReplies = this.#filterSortReplies(this.thread.replies)
-    if (!sortedReplies || sortedReplies.length === 0) {
-      this.renderError('No comments found')
-      return
-    }
+    const sortedReplies = this.#filterSortReplies(this.thread.replies || [])
 
     const comments = document.createElement('comments')
     comments.innerHTML = `
