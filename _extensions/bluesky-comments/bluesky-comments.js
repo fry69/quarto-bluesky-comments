@@ -387,19 +387,6 @@ class BlueskyCommentsSection extends HTMLElement {
           font-size: 0.9em;
           margin-bottom: 0.4em;
           display: inline-block;
-          color: var(--link-color);
-
-          &:not(:hover) {
-            text-decoration: none;
-          }
-
-          &:hover {
-            color: var(--link-hover-color);
-          }
-
-          img {
-
-          }
         }
       }
       .avatar {
@@ -453,7 +440,17 @@ class BlueskyCommentsSection extends HTMLElement {
         width: 1.25rem;
         height: 1.25rem;
       }
+      a {
+          color: var(--link-color);
 
+          &:not(:hover) {
+            text-decoration: none;
+          }
+
+          &:hover {
+            color: var(--link-hover-color);
+          }
+      }
       button {
         margin: var(--button-margin);
         padding: var(--button-padding);
